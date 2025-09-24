@@ -2,15 +2,13 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
 import Auth from '@/components/Auth';
 import TaskManager from '@/components/TaskManager';
 
 export default function Home() {
-    const supabase = getSupabaseClient(); // now initialized lazily
-
-    const [session, setSession] = useState<Session | null>(null);
+    const supabase = getSupabaseClient(); // safe: this file is client-side
+    const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -19,9 +17,7 @@ export default function Home() {
             setLoading(false);
         });
 
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setLoading(false);
         });
@@ -29,13 +25,7 @@ export default function Home() {
         return () => subscription.unsubscribe();
     }, [supabase]);
 
-    if (loading) {
-        return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-    }
-
-    if (!session) {
-        return <Auth />;
-    }
-
+    if (loading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    if (!session) return <Auth />;
     return <TaskManager />;
 }
