@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
+const supabase = getSupabaseClient();
+
 
 export default function Auth() {
   const [email, setEmail] = useState('');
