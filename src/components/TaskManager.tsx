@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import React from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
 
+const supabase = getSupabaseClient();
 interface Task {
   id: string;
   title: string;
