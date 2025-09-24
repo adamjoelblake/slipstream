@@ -3,10 +3,10 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from "npm:@supabase/supabase-js@2.40.0"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.40.0";
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     try {
         // Ensure the request method is POST for creating a task
         if (req.method !== 'POST') {
@@ -83,8 +83,9 @@ Deno.serve(async (req) => {
             { headers: { "Content-Type": "application/json" } },
         )
     } catch (error) {
-        console.error("Error in create-task function:", error.message)
-        return new Response(JSON.stringify({ error: error.message }), {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error("Error in create-task function:", errorMessage)
+        return new Response(JSON.stringify({ error: errorMessage }), {
             headers: { "Content-Type": "application/json" },
             status: 500,
         })

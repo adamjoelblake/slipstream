@@ -6,7 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2.40.0"
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     try {
         // This function can accept POST or DELETE for deletion
         if (!['POST', 'DELETE'].includes(req.method)) {
@@ -85,8 +85,9 @@ Deno.serve(async (req) => {
             { headers: { "Content-Type": "application/json" } },
         )
     } catch (error) {
-        console.error("Error in delete-task function:", error.message)
-        return new Response(JSON.stringify({ error: error.message }), {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error("Error in delete-task function:", errorMessage);
+        return new Response(JSON.stringify({ error: errorMessage }), {
             headers: { "Content-Type": "application/json" },
             status: 500,
         })

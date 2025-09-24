@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import Auth from '@/components/Auth';
 import TaskManager from '@/components/TaskManager';
 
 export default function Home() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

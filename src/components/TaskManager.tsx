@@ -1,14 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import React from 'react';
 import { supabase } from '@/lib/supabase';
 
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  due_date?: string;
+}
+
 export default function TaskManager() {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '' });
-  const [editingTask, setEditingTask] = useState(null);
+  const [newTask, setNewTask] = useState<Partial<Task>>({ title: '', description: '', due_date: '' });
+  const [editingTask, setEditingTask] = useState<Partial<Task> | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -35,16 +44,20 @@ export default function TaskManager() {
         throw new Error(`Failed to fetch tasks: ${response.statusText}`);
       }
 
-      const { tasks } = await response.json();
-      setTasks(tasks || []);
-    } catch (err) {
-      setError(err.message);
+      const { tasks: fetchedTasks } = await response.json();
+      setTasks(fetchedTasks || []);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred while fetching tasks');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const createTask = async (e) => {
+  const createTask = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -69,14 +82,18 @@ export default function TaskManager() {
 
       setNewTask({ title: '', description: '', due_date: '' });
       fetchTasks();
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred while creating task');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const updateTask = async (e) => {
+  const updateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -101,14 +118,18 @@ export default function TaskManager() {
 
       setEditingTask(null);
       fetchTasks();
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred while updating task');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteTask = async (id) => {
+  const deleteTask = async (id: string) => {
     setLoading(true);
     setError('');
 
@@ -131,14 +152,18 @@ export default function TaskManager() {
       }
 
       fetchTasks();
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred while deleting task');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (task) => {
+  const handleEdit = (task: Task) => {
     setEditingTask({ ...task, due_date: task.due_date || '' });
   };
 
@@ -171,22 +196,22 @@ export default function TaskManager() {
           <input
             type="text"
             placeholder="Title"
-            value={newTask.title}
-            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            value={newTask.title || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTask({ ...newTask, title: e.target.value })}
             className="border border-gray-300 p-2 rounded"
             required
           />
           <input
             type="text"
             placeholder="Description"
-            value={newTask.description}
-            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            value={newTask.description || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTask({ ...newTask, description: e.target.value })}
             className="border border-gray-300 p-2 rounded"
           />
           <input
             type="date"
-            value={newTask.due_date}
-            onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+            value={newTask.due_date || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTask({ ...newTask, due_date: e.target.value })}
             className="border border-gray-300 p-2 rounded"
           />
         </div>
@@ -206,8 +231,8 @@ export default function TaskManager() {
             <input
               type="text"
               placeholder="Title"
-              value={editingTask.title}
-              onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+              value={editingTask.title || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTask({ ...editingTask, title: e.target.value })}
               className="border border-gray-300 p-2 rounded"
               required
             />
@@ -215,13 +240,13 @@ export default function TaskManager() {
               type="text"
               placeholder="Description"
               value={editingTask.description || ''}
-              onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTask({ ...editingTask, description: e.target.value })}
               className="border border-gray-300 p-2 rounded"
             />
             <input
               type="date"
               value={editingTask.due_date || ''}
-              onChange={(e) => setEditingTask({ ...editingTask, due_date: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTask({ ...editingTask, due_date: e.target.value })}
               className="border border-gray-300 p-2 rounded"
             />
           </div>
