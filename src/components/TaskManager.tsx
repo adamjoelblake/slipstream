@@ -2,25 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseEdge = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 
 export default function TaskManager() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '' });
-  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
     fetchTasks();
@@ -34,28 +22,29 @@ export default function TaskManager() {
         throw new Error('No session found. Please log in.');
       }
 
-      const response = await fetch(${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/get-tasks, {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/get-tasks`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': Bearer ,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(Failed to fetch tasks: );
+        throw new Error(`Failed to fetch tasks: ${response.statusText}`);
       }
 
       const { tasks } = await response.json();
       setTasks(tasks || []);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const createTask = async (e: React.FormEvent) => {
+  const createTask = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -64,29 +53,30 @@ export default function TaskManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('No session found.');
 
-      const response = await fetch(${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-task, {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-task`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': Bearer ,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(newTask),
       });
 
       if (!response.ok) {
-        throw new Error(Failed to create task: );
+        throw new Error(`Failed to create task: ${response.statusText}`);
       }
 
       setNewTask({ title: '', description: '', due_date: '' });
       fetchTasks();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateTask = async (e: React.FormEvent) => {
+  const updateTask = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -95,29 +85,30 @@ export default function TaskManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('No session found.');
 
-      const response = await fetch(${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/update-task, {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/update-task`;
+      const response = await fetch(url, {
         method: 'PUT',
         headers: {
-          'Authorization': Bearer ,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(editingTask),
       });
 
       if (!response.ok) {
-        throw new Error(Failed to update task: );
+        throw new Error(`Failed to update task: ${response.statusText}`);
       }
 
       setEditingTask(null);
       fetchTasks();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteTask = async (id: string) => {
+  const deleteTask = async (id) => {
     setLoading(true);
     setError('');
 
@@ -125,28 +116,29 @@ export default function TaskManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('No session found.');
 
-      const response = await fetch(${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-task, {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-task`;
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          'Authorization': Bearer ,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ id }),
       });
 
       if (!response.ok) {
-        throw new Error(Failed to delete task: );
+        throw new Error(`Failed to delete task: ${response.statusText}`);
       }
 
       fetchTasks();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (task: any) => {
+  const handleEdit = (task) => {
     setEditingTask({ ...task, due_date: task.due_date || '' });
   };
 
@@ -193,7 +185,6 @@ export default function TaskManager() {
           />
           <input
             type="date"
-            placeholder="Due Date"
             value={newTask.due_date}
             onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
             className="border border-gray-300 p-2 rounded"
@@ -262,7 +253,7 @@ export default function TaskManager() {
                 <h3 className="text-lg font-medium">{task.title}</h3>
                 <p className="text-gray-600">{task.description}</p>
                 <p className="text-sm text-gray-500">
-                  Status: <span className={ont-semibold }>{task.status}</span>
+                  Status: <span className={`font-semibold ${task.status === 'Complete' ? 'text-green-600' : task.status === 'In Progress' ? 'text-yellow-600' : 'text-blue-600'}`}>{task.status}</span>
                 </p>
                 {task.due_date && (
                   <p className="text-sm text-gray-500">Due: {new Date(task.due_date).toLocaleDateString()}</p>
